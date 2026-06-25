@@ -30,7 +30,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain) throws ServletException, IOException {
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // 🔥 IMPORTANT: skip auth endpoints
+        if (path.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String jwt = parseJwt(request);
@@ -46,12 +55,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     null,
                                     userDetails.getAuthorities()
                             );
+
                     authentication.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
+
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
+
         } catch (Exception ex) {
             log.error("Cannot set user authentication: {}", ex.getMessage());
         }
