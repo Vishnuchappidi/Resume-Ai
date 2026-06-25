@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: ecoclean-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ecoclean_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ecoclean-backend
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      # We override the DB URL here to route through internal Docker network 'mysql-db'
+      - DB_URL=jdbc:mysql://mysql-db:3306/ecoclean_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - DB_USERNAME=root
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+    depends_on:
+      - mysql-db
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ecoclean-frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
