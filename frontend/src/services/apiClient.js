@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://resume-ai-backend1-sqof.onrender.com/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
